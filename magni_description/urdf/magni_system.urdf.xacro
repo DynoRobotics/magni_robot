@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="magni">
+  <xacro:arg name="use_sim" default="false" />
+
+  <!-- Enable setting arguments from the launch file -->
+  <xacro:arg name="raspicam_mount" default="forward"/>
+  <xacro:property name="raspicam_mount" value="$(arg raspicam_mount)"/>
+
+  <xacro:arg name="sonars_installed" default="true"/>
+  <xacro:property name="sonars_installed" value="$(arg sonars_installed)"/>
+
+  <xacro:arg name="camera_extrinsics_file" default="-"/>
+  <xacro:property name="camera_extrinsics_file" value="$(arg camera_extrinsics_file)"/>
+
+  <xacro:arg name="lidar_installed" default="false"/>
+  <xacro:property name="lidar_installed" value="$(arg lidar_installed)"/>
+
+  <xacro:property name="wheel_r" value="0.1" />
+  <xacro:property name="wheel_xpos" value="0.11" />
+
+  <xacro:arg name="use_fake_hardware" default="false" />
+  <xacro:arg name="fake_sensor_commands" default="false" />
+
+  <xacro:include filename="$(find magni_description)/urdf/magni.urdf.xacro" />
+
+  <!-- Import all Gazebo-customization elements, including Gazebo colors -->
+  <xacro:include filename="$(find magni_description)/urdf/magni.gazebo.xacro" />
+
+  <!-- Import diffbot ros2_control description -->
+  <xacro:include filename="$(find magni_description)/ros2_control/magni_system.ros2_control.xacro" />
+
+  <xacro:magni wheel_r="${wheel_r}" wheel_xpos="${wheel_xpos}"/>
+
+  <xacro:magni_system
+    name="MagniSystem"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    fake_sensor_commands="$(arg fake_sensor_commands)"/>
+
+  <xacro:include filename="$(find magni_description)/urdf/sensors/sonar_hc-sr04.xacro" />
+  <xacro:include filename="$(find magni_description)/urdf/sensors/raspi_camera.xacro" />
+  <xacro:include filename="$(find magni_description)/urdf/sensors/hokuyo_lidar.xacro" />
+
+  <!-- Define all sonars, if sonars_installed set to 1 -->
+  <xacro:if value="${sonars_installed}">
+    <xacro:sonar_hc-sr04 name="sonar_0" connected_to="base_link">
+      <origin xyz="0.01 -0.14 0.15" rpy="0 0 ${-pi/2}"/>
+    </xacro:sonar_hc-sr04>
+    <xacro:sonar_hc-sr04 name="sonar_1" connected_to="base_link">
+      <origin xyz="0.08 -0.07 0.15" rpy="0 0 0.785"/>
+    </xacro:sonar_hc-sr04>
+    <xacro:sonar_hc-sr04 name="sonar_2" connected_to="base_link">
+      <origin xyz="0.08 -0.01 0.15" rpy="0 0 -0.785"/>
+    </xacro:sonar_hc-sr04>
+    <xacro:sonar_hc-sr04 name="sonar_3" connected_to="base_link">
+      <origin xyz="0.08 0.04 0.15" rpy="0 0 0"/>
+    </xacro:sonar_hc-sr04>
+    <xacro:sonar_hc-sr04 name="sonar_4" connected_to="base_link">
+      <origin xyz="0.01 0.14 0.15" rpy="0 0 ${pi/2}"/>
+    </xacro:sonar_hc-sr04>
+  </xacro:if>
+
+  <!-- If we are given an extrinsics calibration use that instead of the pre-configured pose -->
+  <xacro:if value="${camera_extrinsics_file != '-'}">
+    <xacro:property name="cam_extrinsics" value="${load_yaml(camera_extrinsics_file)}"/>
+    <xacro:property name="cam_position" value="${cam_extrinsics['position']}"/>
+    <xacro:property name="cam_orientation" value="${cam_extrinsics['orientation']}"/>
+
+    <xacro:raspi_camera name="raspicam" connected_to="base_link">
+      <origin xyz="${cam_position[0]} ${cam_position[1]} ${cam_position[2]}"
+        rpy="${cam_orientation[0]} ${cam_orientation[1]} ${cam_orientation[2]}"/>
+    </xacro:raspi_camera>
+  </xacro:if>
+  <xacro:if value="${camera_extrinsics_file == '-'}">
+    <!-- Define raspicam based on the raspicam_mount argument -->
+    <!-- forward  Forward and tilted slightly upwards         -->
+    <!-- upward   Pointing straight up                        -->
+    <!-- downward High on post and pointing 45 degree down    -->
+    <!-- ahead    Directly facing forward with no tilt        -->
+    <xacro:if value="${raspicam_mount == 'forward'}">
+      <xacro:raspi_camera name="raspicam" connected_to="base_link">
+        <origin xyz="0.050 0.085 0.135" rpy="0 ${-pi/2 - 1.15191731} ${pi}"/>
+      </xacro:raspi_camera>
+    </xacro:if>
+    <xacro:if value="${raspicam_mount == 'upward'}">
+      <xacro:raspi_camera name="raspicam" connected_to="base_link">
+        <origin xyz="0.020 0.115 0.155" rpy="0 ${-pi/2} ${-pi/2}"/>
+      </xacro:raspi_camera>
+    </xacro:if>
+    <xacro:if value="${raspicam_mount == 'downward'}">
+      <xacro:raspi_camera name="raspicam" connected_to="base_link">
+        <origin xyz="0.1 0.090 0.145" rpy="${-pi/2} ${pi/2 - 1.25} 0.0"/>
+      </xacro:raspi_camera>
+    </xacro:if>
+    <xacro:if value="${raspicam_mount == 'ahead'}">
+      <xacro:raspi_camera name="raspicam" connected_to="base_link">
+        <origin xyz="0.095 0.061 0.10" rpy="0 0 0"/>
+      </xacro:raspi_camera>
+    </xacro:if>
+  </xacro:if>
+
+  <!-- Define lidar -->
+  <xacro:if value="${lidar_installed}">
+    <xacro:hokuyo_lidar name="laser" connected_to="base_link">
+      <origin xyz="0 0.0 0.2" rpy="0 0 0"/>
+    </xacro:hokuyo_lidar>
+  </xacro:if>
+
+
+</robot>
