@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import launch
+import launch_ros
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
@@ -59,7 +62,7 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, magni_diff_drive_controller],
-        prefix=['gdbserver :2345'],
+        prefix=['gdbserver :9091'],
         output={
             "stdout": "screen",
             "stderr": "screen",
@@ -101,3 +104,15 @@ def generate_launch_description():
             rviz_node,
         ]
     )
+
+def launch_main(argv=None):
+    """Run launch for the magni."""
+
+    launch_service = launch.LaunchService(debug=False)
+
+    launch_service.include_launch_description(generate_launch_description())
+
+    return launch_service.run()
+
+if __name__ == '__main__':
+    launch_main()

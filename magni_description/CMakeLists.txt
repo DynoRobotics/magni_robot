@@ -4,7 +4,7 @@ project(magni_description)
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY config ros2_control urdf meshes
+  DIRECTORY ros2_control urdf meshes
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -14,6 +14,8 @@
           <plugin>ubiquity_motor/UbiquityMotorSystemHardware</plugin>
           <param name="example_param_hw_start_duration_sec">2.0</param>
           <param name="example_param_hw_stop_duration_sec">3.0</param>
+          <param name="serial_port">/dev/ttyAMA0</param>
+          <param name="baud_rate">38400</param>
         </xacro:unless>
       </hardware>
       <joint name="left_wheel_joint">
