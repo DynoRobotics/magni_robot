@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
+
 import launch
 import launch_ros
 
@@ -22,8 +24,7 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
-
-def generate_launch_description():
+def generate_launch_description(args=None):
 
     arg_show_rviz = DeclareLaunchArgument(
         "start_rviz",
@@ -58,11 +59,15 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
+    launch_prefix = []
+
+    if (args != None and args.debug_controller_manager == True):
+        launch_prefix = ['gdbserver :9091']
     controller_manager_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, magni_diff_drive_controller],
-        prefix=['gdbserver :9091'],
+        prefix=launch_prefix,
         # arguments=['--ros-args', '--log-level', 'DEBUG'],
         output={
             "stdout": "screen",
@@ -84,6 +89,13 @@ def generate_launch_description():
         output="screen",
     )
 
+    spawn_motor_diagnostics_broadcaster_controller = Node(
+        package="controller_manager",
+        executable="spawner.py",
+        arguments=["motor_diagnostics_broadcaster"],
+        output="screen",
+    )
+
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare("magni_description"), "config", "diffbot.rviz"]
     )
@@ -102,16 +114,32 @@ def generate_launch_description():
             controller_manager_node,
             spawn_diff_drive_controller,
             spawn_joint_state_broadcaster_controller,
+            spawn_motor_diagnostics_broadcaster_controller,
             rviz_node,
         ]
     )
 
+def add_parser_arguments(parser):
+
+    parser.add_argument(
+        '--debug-controller-manager', action='store_true', default=False)
+
 def launch_main(argv=None):
     """Run launch for the magni."""
 
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    add_parser_arguments(parser)
+
+    if argv is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(argv)
+    
     launch_service = launch.LaunchService(debug=False)
 
-    launch_service.include_launch_description(generate_launch_description())
+    launch_service.include_launch_description(generate_launch_description(args))
 
     return launch_service.run()
 

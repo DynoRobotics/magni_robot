@@ -36,6 +36,12 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
+      
+      <gpio name="magni_IOs">
+        <state_interface name="battery_voltage"/>
+      </gpio> 
+     
+
     </ros2_control>
 
   </xacro:macro>

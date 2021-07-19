@@ -35,12 +35,20 @@ magni_base_controller:
         has_acceleration_limits: true
         max_acceleration       : 5.0   # rad/s^2
 
+motor_diagnostics_broadcaster:
+  ros__parameters:
+    battery_voltage_low_level: 23.2
+    battery_voltage_critical: 22.5
+
 controller_manager:
   ros__parameters:
     update_rate: 20  # Hz
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+
+    motor_diagnostics_broadcaster:
+      type: ubiquity_motor/UbiquityMotorDiagnosticsBroadcaster
 
     magni_base_controller:
       type: diff_drive_controller/DiffDriveController
