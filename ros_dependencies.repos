@@ -1,16 +1,16 @@
 repositories:
   ros-controls/ros2_control:
     type: git
-    url: https://github.com/ros-controls/ros2_control.git
-    version: master
+    url: https://github.com/DynoRobotics/ros2_control.git
+    version: fix_spawner 
   ros-controls/ros2_controllers:
     type: git
     url: https://github.com/ros-controls/ros2_controllers.git
-    version: master
+    version: a86a8c24b9543035f9db3458d4de51a37c6ed5d7
   ros-controls/realtime_tools:
-    type: git
-    url: https://github.com/ros-controls/realtime_tools.git
-    version: ros2_devel
+     type: git
+     url: https://github.com/ros-controls/realtime_tools.git
+     version: foxy-devel
   ros-controls/control_toolbox:
     type: git
     url: https://github.com/ros-controls/control_toolbox.git
@@ -35,3 +35,4 @@ repositories:
     type: git
     url: https://github.com/DynoRobotics/ubiquity_motor.git
     version: galactic-devel
+
